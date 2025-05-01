@@ -130,33 +130,73 @@ Note como os tomates mais escuros foram preservados e o fundo foi descartado. Po
 
 ---
 
-K-means
----
+## 3. O que é K-means?
 
-Um próximo passo mais complexo para a segmentação de imagens, após a limiarização, seria usar o algoritmo de k-means. O k-means é um algoritmo de agrupamento que pode ser usado para segmentar a imagem em diferentes regiões (clusters), com base nas características dos pixels, como a intensidade de cor ou de brilho. Ele pode lidar melhor com imagens que possuem mais variabilidade de cores e intensidades, algo que a limiarização simples não consegue resolver de forma eficaz.
+Agora vamos dar um passo além. E se, ao invés de comparar cada pixel com um único valor, o computador conseguisse **agrupar os pixels com base em semelhanças**?
 
-1. Inicialização: Você escolhe o número de clusters (k) que deseja criar na imagem. Este número pode ser ajustado conforme a necessidade, dependendo de quantas regiões distintas você espera identificar na imagem;
+É exatamente isso que o algoritmo **K-means** faz.
 
-2. Atribuição de pixels aos clusters: O algoritmo calcula a distância (geralmente a distância euclidiana) entre cada pixel e os centróides (médias) dos clusters. Cada pixel é então atribuído ao cluster cujo centróide está mais próximo;
+Imagine novamente a imagem dos tomates. Só que agora, ao invés de pensar em claro e escuro, você quer que o computador **identifique grupos diferentes de cor**:
 
-3. Recalcular os centróides: Após todos os pixels terem sido atribuídos a um cluster, os centróides dos clusters são recalculados com base na média das intensidades dos pixels de cada cluster;
+- Tomates vermelhos
+- Tomates amarelos
+- Fundo branco
 
-4. Iteração: Os passos 2 e 3 são repetidos até que os centróides dos clusters se estabilizem (ou seja, não mudem mais significativamente entre as iterações).
+O K-means é um algoritmo de **agrupamento**. Ele funciona assim:
 
-??? Exercício
+1. Escolhe `k` grupos (você decide quantos quer).
+2. Atribui cada pixel ao grupo mais parecido com ele.
+3. Atualiza os grupos com base nos pixels atribuídos.
+4. Repete até os grupos pararem de mudar.
 
-Este é um exemplo de exercício, entre `md ???`.
+No nosso caso, podemos pedir para o K-means encontrar `k=3` grupos. A ideia é que cada grupo represente uma cor dominante da imagem.
+
+??? Exercicio
+
+Imagine os seguintes pixels representados por valores de intensidade (simples, para fins didáticos):
+
+```
+20, 25, 210, 220, 240, 100, 110
+```
+
+Suponha que `k = 3`. Você poderia agrupar manualmente esses valores em 3 grupos? Em que intervalos faria isso?
 
 ::: Gabarito
-Este é um exemplo de gabarito, entre `md :::`.
+Uma possibilidade:
+- Grupo 1: 20, 25 (valores baixos)
+- Grupo 2: 100, 110 (valores médios)
+- Grupo 3: 210, 220, 240 (valores altos)
 :::
 
 ???
 
----
+Diferente do thresholding, aqui você não compara com um único valor. Você precisa:
 
-Watershed
+- Inicializar `k` centros (valores médios aleatórios ou distribuídos)
+- Para cada pixel, descobrir a qual centro ele está mais próximo
+- Atualizar os centros com a média dos pixels atribuídos
+
+Antes de ver o código, pense:
+> Como você faria isso em C, onde não há biblioteca pronta para agrupar?
+
+Clone o repositório a seguir para ver a implementação completa do K-means em C:
+
+
+```bash
+git clone https://github.com/ferclima05/handout-Watershed
+```
+
+Compile com `gcc` e execute com uma imagem `.pgm`. O programa vai agrupar os pixels em `k` grupos diferentes.
+
+Veja abaixo a imagem após aplicar o K-means com `k = 3`:
+
+![](saida_means.png)
+
+Note como agora conseguimos distinguir diferentes grupos de cor. Porém, os objetos ainda estão colados. Resolveremos isso na próxima técnica!
+
 ---
+Watershed
+
 
 Vamos ver como funciona watershed
 
