@@ -1,6 +1,99 @@
 Segmentação por Watershed com Marcadores
 ======
 
+## 1. Algoritmos de segmentação
+
+Imagine que você tira uma foto em preto e branco de vários comprimidos sobre uma mesa. Como estão encostados, seus contornos se misturam. Para um humano, contar os comprimidos já seria um desafio. Para um computador, isso é ainda mais complicado.
+
+Esse tipo de problema aparece em muitas áreas:
+
+* Na medicina, com células grudadas ou partes do corpo com limites pouco claros;
+
+* Na indústria farmacêutica, com pellets ou pós comprimidos;
+
+* No agronegócio, com sementes empilhadas;
+
+* Em inspeção industrial, quando queremos detectar trincas ou bolhas em superfícies.
+
+Antes de contar, medir ou classificar qualquer coisa em uma imagem, é preciso separar o que é objeto e o que é fundo. Isso é o que chamamos de **segmentação de imagem**.
+
+Existem vários métodos para fazer segmentação. Um deles é o **Watershed**, que é especialmente útil quando os objetos estão encostados, grudados ou com bordas suaves. Ele não entende o que é célula, semente ou comprimido — mas ele consegue dividir a imagem em regiões com base nos próprios pixels.
+
+O que é segmentação?
+---------
+
+A segmentação é o processo de decidir, para cada pixel da imagem, se ele pertence a:
+
+* um objeto (e a qual objeto), ou
+
+* ao fundo.
+
+Sem isso, o computador não sabe onde um comprimido termina e o outro começa. Não sabe onde está uma célula, uma rachadura ou uma semente.
+
+??? Explorando o problema
+
+Olhe para a imagem abaixo.
+
+![](comprimidos.png)
+
+* Você conseguiria contar os comprimidos? E programar um computador para isso?
+
+* O que torna essa tarefa difícil para um sistema automatizado?
+
+* O que ele precisaria "enxergar" primeiro antes de contar ou medir?
+
+::: Gabarito
+O computador não enxerga "objetos" como nós. Ele vê pixels. Para separar objetos, ele precisa identificar limites entre regiões com características diferentes — como brilho, cor ou textura.
+:::
+
+???
+
+## Fazendo as conexões: problema, algoritmo e aplicação
+
+Para entender bem o papel do Watershed, é importante não confundir três coisas diferentes:
+
+* o problema que queremos resolver,
+
+* o algoritmo que usamos para isso,
+
+* e a aplicação prática que se torna possível depois que o problema é resolvido.
+
+Vamos organizar essas ideias:
+
+|Conceito  | Explicação |
+|----------|----------|
+| Problema | Separar visualmente diferentes objetos em uma imagem — isso é segmentação.        |
+|     Algoritmo     |    Watershed é uma das formas de segmentar. Ele divide a imagem em regiões com base em semelhanças de pixels.     |
+|      Aplicação    |   Após a segmentação, podemos medir, contar ou processar cada região individualmente.
+      |
+
+!!! Atenção
+Watershed não classifica o que encontra. Ele apenas segmenta a imagem.
+!!!
+
+
+??? Exemplo visual
+
+Veja a imagem segmentada com o Watershed. As linhas vermelhas marcam os "limites" entre regiões.
+
+![](comprimidos_linhas.png)
+
+* O que você acha que essas linhas representam?
+
+* Se você quisesse medir a área de cada comprimido, por que isso ajuda?
+
+::: Gabarito
+As linhas representam fronteiras entre regiões com características distintas. Uma vez separadas, é possível tratar cada área como um objeto individual.
+:::
+
+???
+
+## Por que é importante?
+
+Segmentar imagens economiza tempo humano e evita erros. Antes, esse processo era feito manualmente ou com muito treinamento de IA. O Watershed oferece uma forma automática e precisa de dividir imagens em regiões distintas. Isso abre caminho para muitas aplicações reais, com menos custo e mais eficiência.
+
+Agora que você entendeu qual é o problema e por que ele importa, o próximo passo é aprender como o Watershed faz essa segmentação.
+
 O que é segmentação?
 ---------
 
