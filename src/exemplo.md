@@ -69,38 +69,60 @@ Este é um exemplo de gabarito, entre `md :::`.
 Watershed
 ---
 
-Agora que já vimos como funcionam os algorítmos mais simples de segmentação, vamos entender a ideia por tras do Watershed (bacias hidrográficas).
+Agora que já vimos como funcionam os algoritmos mais simples de segmentação, vamos entender a ideia por trás do Watershed (bacias hidrográficas).
 
-Vamos utilizar a imagem dos comprimidos como exemplo, e vamos utilizar a simplificação dela para entender a ideia do algoritmo.
+Vamos utilizar a imagem dos comprimidos como exemplo, e faremos uma simplificação dela para compreender melhor o funcionamento do algoritmo.
 
 ![](comprimidos_matrizes.png)
 
-O algoritmo interpreta a imagem em escala de cinza como um relevo topográfico, em que cada pixel representa uma altitude.
+O algoritmo interpreta a imagem em escala de cinza como um relevo topográfico, no qual cada pixel possui uma altitude conforme seu nível de brilho. Quanto mais branco o pixel, mais alto ele é, e quanto mais escuro, mais baixo ele é.
 
 ![](comprimidos_matrizes_cinza_.png)
 
-No caso dessa imagem é como se tivessemos buracos de várias profundidades diferentes.
+No caso dessa imagem, como o fundo é branco, é como se houvesse buracos de diferentes profundidades.
 
-O algoritmo simula a água subindo pelos vales: imagine que há uma nascente no centro de cada vale então a "água" começa a preencher os vales. Quando regiões com águas de duas nascentes diferentes se encontram, é construída uma barreira — essa barreira marca a divisão entre diferentes objetos na imagem. Dessa forma, o algoritmo separa a imagem em regiões bem definidas, como se fossem bacias hidrográficas.
+O algoritmo simula a água subindo por esses vales: imagine que há uma nascente no centro de cada vale, então a "água" começa a preenchê-los. Quando as "águas" de duas nascentes diferentes se encontram, é construída uma barreira — essa barreira marca a divisão entre diferentes objetos na imagem. Assim, o algoritmo separa a imagem em regiões bem definidas, como se fossem bacias hidrográficas.
 
-E como fazemos para definir esses locais onde ficarão posicionadas as nascentes?
+Mas como definimos onde essas nascentes devem ser posicionadas?
 
 ---
 
 Watershed com Marcadores
 ---
 
-Introduzindo a ideia dos marcadores
+Os marcadores são uma outra matriz de input do algoritmo que serve para indicar por onde a agua deve começar a surgir.
+
+![](marcadores.png)
+
 
 ??? Exercício
 
-Este é um exemplo de exercício, entre `md ???`.
+Abra o arquivo `md watershed_com_marcadores.ipynb` [deste repositorio](https://github.com/ferclima05/handout-Watershed.git) para abrir uma simulação em python do algoritmo funcionando. Nela você pode escolher onde ficarão os marcadores e quais marcadores pertencem a cada objeto.
+
+Apertando as teclas de númeos 1 a 9 você seleciona o marcador.
+
+Depois de selecionar os marcadores, aperte [[w]] para aplicar Watershed.
 
 ::: Gabarito
-Este é um exemplo de gabarito, entre `md :::`.
+O resultado deve ser parecido com isso
+
+![](saida_watershed.png)
+
+{red}(*O algoritmo tem dificuldade em identificar os comprimidos brancos por conta do fundo.)
+
 :::
 
 ???
+
+Apesar de ser um algoritmo poderoso, o Watershed também apresenta algumas limitações importantes que precisam ser consideradas:
+
+**Supersegmentação:** quando a imagem possui muito ruído ou pequenas variações de intensidade, o algoritmo pode interpretar cada pequeno vale como uma região separada. Isso gera um número excessivo de divisões, dificultando a segmentação correta.
+
+**Baixo contraste:** se os objetos da imagem tiverem um brilho muito próximo ao do fundo, o relevo gerado terá poucas diferenças de altitude. Isso dificulta que o algoritmo identifique onde estão os vales, resultando em regiões pouco definidas ou incorretas.
+
+Esses problemas podem ser amenizados com técnicas de pré-processamento, como suavização (blur), remoção de ruído ou definição manual de marcadores.
+
+
 
 ---
 
