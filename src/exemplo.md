@@ -69,17 +69,21 @@ Este é um exemplo de gabarito, entre `md :::`.
 Watershed
 ---
 
-Vamos ver como funciona watershed
+Agora que já vimos como funcionam os algorítmos mais simples de segmentação, vamos entender a ideia por tras do Watershed (bacias hidrográficas).
 
-??? Exercício
+Vamos utilizar a imagem dos comprimidos como exemplo, e vamos utilizar a simplificação dela para entender a ideia do algoritmo.
 
-Este é um exemplo de exercício, entre `md ???`.
+![](comprimidos_matrizes.png)
 
-::: Gabarito
-Este é um exemplo de gabarito, entre `md :::`.
-:::
+O algoritmo interpreta a imagem em escala de cinza como um relevo topográfico, em que cada pixel representa uma altitude.
 
-???
+![](comprimidos_matrizes_cinza_.png)
+
+No caso dessa imagem é como se tivessemos buracos de várias profundidades diferentes.
+
+O algoritmo simula a água subindo pelos vales: imagine que há uma nascente no centro de cada vale então a "água" começa a preencher os vales. Quando regiões com águas de duas nascentes diferentes se encontram, é construída uma barreira — essa barreira marca a divisão entre diferentes objetos na imagem. Dessa forma, o algoritmo separa a imagem em regiões bem definidas, como se fossem bacias hidrográficas.
+
+E como fazemos para definir esses locais onde ficarão posicionadas as nascentes?
 
 ---
 
