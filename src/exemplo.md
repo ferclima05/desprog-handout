@@ -195,8 +195,9 @@ Veja abaixo a imagem após aplicar o K-means com `k = 3`:
 Note como agora conseguimos distinguir diferentes grupos de cor. Porém, os objetos ainda estão colados. Resolveremos isso na próxima técnica!
 
 ---
-Watershed
 
+Watershed
+---
 
 Agora que já vimos como funcionam os algoritmos mais simples de segmentação, vamos entender a ideia por trás do Watershed (bacias hidrográficas).
 
