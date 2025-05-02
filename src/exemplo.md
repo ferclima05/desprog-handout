@@ -259,21 +259,77 @@ Esses problemas podem ser amenizados com técnicas de pré-processamento, como s
 Complexidade do algoritmo
 ---
 
-Mostrar como chegamos na complexidade do Tresholding, Watershed, Wathershed com Marcadores 
+Para determinar a complexidade do algoritmo de segmentação por Watershed com marcadores, precisamos pensar em como cada pixel da imagem é “inundado” e rotulado ao longo da execução.
 
-| Tresholding | Watershed | Watershed c/ Marcadores |
-|-------------|-----------|-------------------------|
-| O()         | O()       | O()                     |
+![](image_3D.png)
+
+Como vimos na explicação do algoritmo, o procedimento consiste em extrair o pixel de menor valor de gradiente da fila de prioridade, rotulá-lo com o valor correspondente e inserir os vizinhos ainda não inundados na fila de prioridade.
+
+No exemplo acima, a fila de prioridade foi baseada na estrutura de **buckets**, pois o mapa de gradiente foi normalizado para valores inteiros entre 0 e 255 (mesma faixa dos níveis de cinza dos pixels), tornando essa abordagem tanto mais simples de implementar quanto mais eficiente em desempenho, pois é mais rápida do que se fosse utilizado heap binário.
+
+Nesse processo, duas operações dominam o custo total: a manipulação da fila de prioridade e a verificação dos vizinhos de cada pixel. Tente pensar qual a complexidade de cada uma das operações.
 
 ??? Exercício
 
-Este é um exemplo de exercício, entre `md ???`.
+Pense qual é a complexidade da manipulação da fila de prioridade e qual a complexidade da verificação dos vizinhos de cada pixel.
 
 ::: Gabarito
-Este é um exemplo de gabarito, entre `md :::`.
+A manipulação da fila de prioridade, baseada na estrutura de buckets, ocorre da seguinte forma: 
+* Acessa o bucket número g (array g) - **O(1)**;
+* Adiciona ou retira o pixel da fila desse bucket - **O(1)**.
+
+Não há necessidade de comparar chaves nem de reorganizar a estrutura, então cada inserção ou remoção é sempre feita em tempo constante.
+
+Ao verificar os vizinhos de um pixel, você sempre faz um número fixo de checagens:
+
+* **4-conectividade**: testa até 4 vizinhos (cima, baixo, esquerda, direita).
+
+* **8-conectividade**: testa até 8 vizinhos (inclui diagonais).
+
+Como esse número de vizinhos não cresce com o tamanho da imagem **𝑁**, cada pixel gera **O(1)** operações de vizinhança. No total, para **𝑁** pixels, isso dá **O(N)**, mas por pixel é sempre **O(1)**.
 :::
 
 ???
+
+??? Exercício
+
+Mas e se ao invés de utilizar a estrutura de buckets, fosse utilizada a estrutura de heap binário? Qual seria a complexidade nesse caso?
+
+::: Gabarito
+Nesse caso, ao usar um **heap binário** em vez de buckets, cada inserção (push) e extração (pop) custa **O(log N)**, pois envolve operações de heapify (up ou down) que, no pior caso, percorrem toda a altura da árvore binária completa, o que corresponde a aproximadamente **log N** comparações e trocas.
+:::
+
+???
+
+Comparação com os outros algoritmos
+---
+
+| Algoritmo                      | Complexidade Geral    |
+|--------------------------------|-----------------------|
+| **Thresholding**               | O(N)                  |
+| **Watershed (sem marcadores)** | O(N)                  |
+| **Watershed com marcadores**   | O(N)                  |
+| **k-means**                    | O(N·k·I)              |
+
+- **N** = número de pixels da imagem  
+- **k** = número de clusters
+- **I** = número de iterações até convergência  
+
+**Observação:**  
+- Nesta tabela consideramos a versão de Watershed que usa **buckets**, reduzindo seu custo para **O(N)**.  
+- Se, em vez de buckets, fosse utilizado um **heap binário**, a complexidade de Watershed aumentaria para **O(N log N)**.  
+- Em contextos práticos, k-means também é tratado como **O(N)** quando o número de clusters (k) e de iterações (I) são fixos e pequenos.
+
+
+Em termos de **complexidade**, todas as técnicas apresentadas — **Thresholding**, **Watershed** (com ou sem marcadores, usando buckets) e **k-means** (com *k* e *I* constantes) — podem ser implementadas em tempo **O(N)**. Essa semelhança significa que, do ponto de vista de escalabilidade, nenhuma delas se torna intratável apenas pelo crescimento do número de pixels.
+
+No entanto, cada método traz **vantagens e limitações** específicas:
+
+- **Thresholding** é extremamente rápido e direto (uma única passagem em O(N)), mas não distingue regiões limítrofes que apresentem valores de intensidade semelhantes.
+- **k-means**, embora também linear quando *k* e *I* são fixos, dependendo da escolha de *k*, pode gerar clusters espacialmente desconectados e normalmente requer pós-processamento para refinar fronteiras.  
+- **Watershed com buckets** combina segmentação guiada pelas bordas (cristas de gradiente) com complexidade linear, produzindo **fronteiras alinhadas** a contornos reais e garantindo regiões coerentes com os objetos da imagem — ideal para cenários em que a precisão de delimitação é tão importante quanto a eficiência.
+
+Portanto, mesmo partindo de **O(N)** para todos, vale escolher o algoritmo certo para cada necessidade: se a prioridade for **velocidade pura** e o objetivo for uma divisão muito simples, o **thresholding** basta; se for **qualidade de segmentação espacial**, especialmente em imagens com ruído ou variações suaves, **Watershed com buckets** se destaca como a melhor opção.
 
 ---
 Fim do handout - Abaixo são exemplos de componentes que podemos usar para fazer o Handout 
