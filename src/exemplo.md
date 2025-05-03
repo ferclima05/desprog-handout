@@ -103,12 +103,12 @@ Imagine que você está olhando uma imagem como esta:
 
 Você consegue identificar facilmente os tomates vermelhos? E os amarelos? Para nós, humanos, é relativamente simples. Mas... e para um computador?
 
-Vamos imaginar que você precisa ensinar um computador a **separar objetos do fundo em uma imagem**. Uma das das formas mais simples de fazer isso é com um algoritmo chamado **thresholding** (ou "limiarização").
+Vamos imaginar que você precisa ensinar um computador a **separar objetos do fundo em uma imagem**. Uma das formas mais simples de fazer isso é com um algoritmo chamado **thresholding** (ou "limiarização").
 
 O algoritmo de thresholding tenta **transformar uma imagem complexa em uma simples**: ele define um valor de corte e separa os pixels em dois grupos:
 
-* Os que estão **acima do valor**, que chamaremos de objeto.
-* Os que estão **abaixo do valor**, que chamaremos de fundo.
+* Os que estão **acima do valor**, vão virar brancos.
+* Os que estão **abaixo do valor**, vão virar pretos.
 
 Por exemplo: “se a intensidade do pixel for maior que 128, ele faz parte do objeto”.
 
@@ -122,7 +122,7 @@ Imagine uma imagem com os seguintes valores de pixels (em escala de cinza):
 100 120 135 150 160
 ```
 
-Se o limiar for `130`, quais desses valores você acha que deveriam virar **branco (255)** e quais deveriam virar **preto (0)**?
+Se o limiar for **130**, quais desses valores você acha que deveriam virar **branco (255)** e quais deveriam virar **preto (0)**?
 
 ::: Gabarito
 Valores maiores que 130 viram 255 (branco): 135, 150, 160  
@@ -194,7 +194,7 @@ Clone o repositório a seguir para ver o código completo em C que aplica thresh
 git clone https://github.com/ferclima05/handout-Watershed
 ```
 
-Você pode compilar com `gcc` e testar com imagens `.pgm` para ver o funcionamento.
+Você pode compilar com `md gcc` e testar com imagens `md .pgm` para ver o funcionamento.
 
 !!! Aviso
 Apesar de simples, thresholding **não funciona bem em imagens complexas** com objetos sobrepostos ou cores próximas. Ele deve ser usado com cautela.
@@ -222,12 +222,12 @@ Imagine novamente a imagem dos tomates. Só que agora, ao invés de pensar em cl
 
 O K-means é um algoritmo de **agrupamento**. Ele funciona assim:
 
-1. Escolhe `k` grupos (você decide quantos quer).
+1. Escolhe `md k` grupos (você decide quantos quer).
 2. Atribui cada pixel ao grupo mais parecido com ele.
 3. Atualiza os grupos com base nos pixels atribuídos.
 4. Repete até os grupos pararem de mudar.
 
-No nosso caso, podemos pedir para o K-means encontrar `k=3` grupos. A ideia é que cada grupo represente uma cor dominante da imagem.
+No nosso caso, podemos pedir para o K-means encontrar `md k = 3` grupos. A ideia é que cada grupo represente uma cor dominante da imagem.
 
 ??? Exercicio
 
@@ -237,7 +237,7 @@ Imagine os seguintes pixels representados por valores de intensidade (simples, p
 20, 25, 210, 220, 240, 100, 110
 ```
 
-Suponha que `k = 3`. Você poderia agrupar manualmente esses valores em 3 grupos? Em que intervalos faria isso?
+Suponha que `md k = 3`. Você poderia agrupar manualmente esses valores em 3 grupos? Em que intervalos faria isso?
 
 ::: Gabarito
 Uma possibilidade:
@@ -250,7 +250,7 @@ Uma possibilidade:
 
 Diferente do thresholding, aqui você não compara com um único valor. Você precisa:
 
-- Inicializar `k` centros (valores médios aleatórios ou distribuídos)
+- Inicializar `md k` centros (valores médios aleatórios ou distribuídos)
 - Para cada pixel, descobrir a qual centro ele está mais próximo
 - Atualizar os centros com a média dos pixels atribuídos
 
@@ -264,9 +264,9 @@ Clone o repositório a seguir para ver a implementação completa do K-means em 
 git clone https://github.com/ferclima05/handout-Watershed
 ```
 
-Compile com `gcc` e execute com uma imagem `.pgm`. O programa vai agrupar os pixels em `k` grupos diferentes.
+Compile com `md gcc` e execute com uma imagem `md .pgm`. O programa vai agrupar os pixels em `md k` grupos diferentes.
 
-Veja abaixo a imagem após aplicar o K-means com `k = 3`:
+Veja abaixo a imagem após aplicar o K-means com `md k = 3`:
 
 ![](saida_means.png)
 
@@ -330,7 +330,47 @@ Apesar de ser um algoritmo poderoso, o Watershed também apresenta algumas limit
 
 Esses problemas podem ser amenizados com técnicas de pré-processamento, como suavização (blur), remoção de ruído ou definição manual de marcadores.
 
+---
 
+## Implementação da Fila de Prioridade em Watershed
+
+Ambas as variantes — **Watershed sem marcadores** e **Watershed com marcadores** — usam o mesmo mecanismo de “inundação” guiada por uma fila de prioridade: extraem sempre o pixel de menor gradiente ainda não processado e inserem seus vizinhos. O que muda é apenas **quais** pixels entram como sementes iniciais. A seguir descrevemos as duas implementações mais comuns dessa fila.
+
+## 1. Heap Binário
+
+- Armazena os elementos num **vetor** que representa uma árvore binária completa.  
+- Em um **min-heap**, o menor gradiente está sempre na raiz (`md A[1]`).
+
+- **Inserção (`md push`)**  
+  - Acrescenta o pixel no fim do vetor.  
+  - “Heapify-up”: compara com o pai e troca se o valor do filho for menor que o do pai, subindo até a raiz.  
+
+- **Extração do mínimo (`md pop`)**  
+  - Remove a raiz (menor gradiente).  
+  - Move o último elemento para a raiz.  
+  - “Heapify-down”: compara com os filhos e troca com o menor, descendo até restaurar a heap (árvore).
+
+## 2. Buckets
+
+- Cria um **array** `md buckets[0 … Gₘₐₓ]`, onde `md Gₘₐₓ` é o máximo do gradiente (ex.: 255).  
+- Cada `md buckets[g]` é uma lista (ou fila) de pixels cujo gradiente é exatamente `md g`.  
+- Mantém um ponteiro `md current` apontando para o menor `md g` com bucket não vazio.
+
+- **Inserção (`md push`)**  
+  - Insere o pixel `md (i,j)` no final da lista de `md buckets[g]`, onde `md g` é o valor do gradiente desse pixel.  
+
+- **Extração do mínimo (`md pop`)**  
+  - Enquanto `md buckets[current]` estiver vazio, incrementa `md current` até encontrar um bucket não-vazio (cada bucket vazio é “pulado” apenas uma vez).  
+  - Remove e retorna o primeiro elemento de `md buckets[current]`.  
+
+## Importância da Fila de Prioridade
+
+A fila de prioridade é o **coração** do algoritmo de Watershed (com ou sem marcadores), pois ela garante que a “inundação” avance **sempre** pelos pixels de **menor gradiente** primeiro. Sem esse controle, a expansão das bacias ocorreria em ordem arbitrária, comprometendo a delimitação de fronteiras e a coerência das regiões segmentadas. Além disso:
+
+- **Precisão de segmentação**: ao extrair o próximo pixel a ser rotulado com base no gradiente mais baixo, a fila de prioridade assegura que a água só ultrapasse as cristas (alto gradiente) no momento correto, definindo fronteiras naturais entre objetos.  
+- **Concorrência de sementes**: em versões com múltiplos marcadores, a fila unificada interliga e ordena a propagação de cada região, evitando sobreposição e “buracos” não intencionais.  
+
+Em resumo, sem a fila de prioridade bem implementada, o Watershed não seria capaz de combinar precisão topográfica com desempenho, perdendo sua capacidade de produzir segmentações fiéis às bordas reais da imagem.
 
 ---
 
@@ -343,7 +383,7 @@ Para determinar a complexidade do algoritmo de segmentação por Watershed com m
 
 Como vimos na explicação do algoritmo, o procedimento consiste em extrair o pixel de menor valor de gradiente da fila de prioridade, rotulá-lo com o valor correspondente e inserir os vizinhos ainda não inundados na fila de prioridade.
 
-No exemplo acima, a fila de prioridade foi baseada na estrutura de **buckets**, pois o mapa de gradiente foi normalizado para valores inteiros entre 0 e 255 (mesma faixa dos níveis de cinza dos pixels), tornando essa abordagem tanto mais simples de implementar quanto mais eficiente em desempenho, pois é mais rápida do que se fosse utilizado heap binário.
+No exemplo acima, a fila de prioridade foi baseada na estrutura de **buckets**, pois o mapa de gradiente foi normalizado para valores inteiros entre 0 e 255 (mesma faixa dos níveis de cinza dos pixels), tornando essa abordagem tanto mais simples de implementar quanto mais eficiente em desempenho, pois é mais rápida do que se fosse utilizado **heap binário**.
 
 Nesse processo, duas operações dominam o custo total: a manipulação da fila de prioridade e a verificação dos vizinhos de cada pixel. Tente pensar qual a complexidade de cada uma das operações.
 
