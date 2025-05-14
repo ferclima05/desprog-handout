@@ -172,7 +172,7 @@ Imagine que há uma nascente no centro de cada vale, então a "água" começa a 
 
 Muito simples né? Agora pense em como ficaria a imagem das moedas com base no procedimento descrito
 
-![](watershed_SS.png)
+![](moedas1.png)
 
 ::: Gabarito
 ![](watershed_SS.png)
@@ -181,7 +181,7 @@ Muito simples né? Agora pense em como ficaria a imagem das moedas com base no p
 
 ???
 
-Não ficou como esperavamos né? Ocorreu o que chamamos de **supersegmentação**.
+Não ficou como esperávamos né? Ocorreu o que chamamos de **supersegmentação**.
 
 ??? Checkpoint
 
@@ -195,7 +195,7 @@ Na realidade, a imagem da vista lateral não é sempre como apresentamos anterio
 
 ![](Vista_superior_e_vista_lateral_circulos.png)
 
-Possui varios pontos de mínimos locais que o algoritmo interpreta como "nascentes".
+Possui vários pontos de mínimos locais que o algoritmo interpreta como "nascentes".
 
 : SS
 
@@ -211,7 +211,7 @@ Como podemos resolver esse problema?
 Watershed com Marcadores
 ---
 
-Os marcadores são uma outra matriz de input do algoritmo que serve para indicar por onde a àgua deve começar a surgir, ou seja, quantas "nascentes" terão e onde serão posicionadas.
+Os marcadores são uma outra matriz de input do algoritmo que serve para indicar por onde a água deve começar a surgir, ou seja, quantas "nascentes" terão e onde serão posicionadas.
 
 ??? Checkpoint
 
@@ -224,13 +224,14 @@ Dada a imagem do exemplo, em que pontos você colocaria os marcadores?
 
 ![](Vista_superior_e_vista_lateral_marcadores.png)
 
-{red}(**OBS: Se você não colocou os marcadores exatamente na posição mostrada no gabarito não significa que a sua solução esteje errada, o objetivo é posicionar o marcador onde temos certeza que é um objeto.**)
-
+!!!
+{red}(Se você não colocou os marcadores exatamente na posição mostrada no gabarito não significa que a sua solução esteja errada, o objetivo é posicionar o marcador onde temos certeza que é um objeto.)
+!!!
 :::
 
 ???
 
-Dessa forma, garantimos que não sejam criadas nascentes desnecessárias e também que o comportamento do algorítmo seja como esperavamos a princípio
+Dessa forma, garantimos que não sejam criadas nascentes desnecessárias e também que o comportamento do algoritmo seja como esperávamos a princípio
 
 : Marcadores
 
@@ -240,7 +241,7 @@ Ok, agora sim podemos simular a imagem original das moedas utilizando a técnica
 
 Em quais pontos da imagem você colocaria os marcadores?
 
-![](Vista_superior_e_vista_lateral_real.png)
+![](moedas1.png)
 
 
 ::: Gabarito
@@ -257,22 +258,25 @@ Em quais pontos da imagem você colocaria os marcadores?
 
 ???
 
+Agora sim alcançamos o resultado que esperávamos. Mas será que esse algoritmo é eficiente em termos de complexidade?
 
-??? Exercício complementar
+---
 
-Abra o arquivo `md watershed_com_marcadores.ipynb` [deste repositorio](https://github.com/ferclima05/handout-Watershed.git) para abrir uma simulação em python do algoritmo funcionando. Nela você pode escolher onde ficarão os marcadores e quais marcadores pertencem a cada objeto.
+Exercícios complementares
+---
+
+??? Para se aprofundar
+
+Abra o arquivo `md watershed_com_marcadores.ipynb` [deste repositório](https://github.com/ferclima05/handout-Watershed.git) para abrir uma simulação em python do algoritmo funcionando. Nela você pode escolher onde ficarão os marcadores e quais marcadores pertencem a cada objeto.
 
 Apertando as teclas de númeos 1 a 9 você seleciona o marcador.
 
 Depois de selecionar os marcadores, aperte [[w]] para aplicar Watershed.
 
-::: Gabarito
-O resultado deve ser parecido com isso
+???
 
-![](saida_watershed.png)
+??? Para se aprofundar
 
-{red}(*O algoritmo tem dificuldade em identificar os comprimidos brancos por conta do fundo.)
-
-:::
+No mesmo repositório estão os códigos do thresholding e K-means para testar!!
 
 ???
