@@ -67,7 +67,10 @@ O algoritmo precisa detectar **diferenças de intensidade** ou **textura** que m
 
 Segmentar imagens economiza tempo humano e evita erros. Antes, esse processo era feito manualmente ou com muito treinamento de IA. Mas existem algoritmos que oferecem uma forma automática e precisa de dividir imagens em regiões distintas. Isso abre caminho para muitas aplicações reais, com menos custo e mais eficiência.
 
-## Thresholding
+---
+
+Thresholding
+---
 
 Agora que entendemos o desafio de separar objetos em uma imagem, vamos começar com um dos métodos mais simples e intuitivos de segmentação: o **thresholding**.
 
@@ -131,3 +134,145 @@ Embora as moedas sejam bem destacadas do fundo, **o algoritmo não consegue sepa
 !!! Aviso
 Thresholding é ótimo para **destacar objetos do fundo quando há contraste**, mas **não entende a estrutura ou a forma dos objetos**. Por isso, ele falha quando os objetos estão sobrepostos ou conectados.
 !!!
+
+Para solucionar esse problema vamos conhecer um novo algoritmo de segmentação.
+
+---
+
+Watershed
+---
+
+Para poder entender a ideia do algoritmo precisamos visualizar a imagem de uma forma diferente. Para isso, vamos utilizar um exemplo em baixa resolução da foto das moedas.
+
+![](exemplo_em_baixa_resolucao.png)
+
+
+??? Checkpoint
+
+O algoritmo interpreta a imagem em escala de cinza como um relevo topográfico, no qual cada pixel possui uma altitude conforme seu nível de brilho (de 0 a 255). Quanto mais branco o pixel, mais alto ele é, e quanto mais escuro, mais baixo ele é.
+
+Com base nessa descrição, pense em como ficaria esse exemplo em baixa resolução no corte representado pela linha vermelha, ou seja, como seria uma "Vista Lateral" da imagem se ela fosse cortada na linha vermelha.
+
+![](Vista_superior.png)
+
+::: Gabarito
+![](Vista_superior_e_vista_lateral.png)
+
+:::
+
+???
+
+Ok, agora que sabemos como o algoritmo enxerga as imagens vamos entender a ideia por trás do Watershed (bacias hidrográficas).
+
+Imagine que há uma nascente no centro de cada vale, então a "água" começa a preenchê-los. Quando as "águas" de duas nascentes diferentes se encontram, é construída uma barreira — essa barreira marca a divisão entre diferentes objetos na imagem. Assim, o algoritmo separa a imagem em regiões bem definidas, como se fossem bacias hidrográficas.
+
+:Watershed
+
+??? Checkpoint
+
+Muito simples né? Agora pense em como ficaria a imagem das moedas com base no procedimento descrito
+
+![](watershed_SS.png)
+
+::: Gabarito
+![](watershed_SS.png)
+
+:::
+
+???
+
+Não ficou como esperavamos né? Ocorreu o que chamamos de **supersegmentação**.
+
+??? Checkpoint
+
+Olhando para a imagem retornada, por que você acha que isso aconteceu?
+
+::: Gabarito
+
+Vamos voltar ao exemplo em baixa resolução.
+
+Na realidade, a imagem da vista lateral não é sempre como apresentamos anteriormente. Na maioria dos casos ela se parece com isso.
+
+![](Vista_superior_e_vista_lateral_circulos.png)
+
+Possui varios pontos de mínimos locais que o algoritmo interpreta como "nascentes".
+
+: SS
+
+:::
+
+???
+
+
+Como podemos resolver esse problema?
+
+---
+
+Watershed com Marcadores
+---
+
+Os marcadores são uma outra matriz de input do algoritmo que serve para indicar por onde a àgua deve começar a surgir, ou seja, quantas "nascentes" terão e onde serão posicionadas.
+
+??? Checkpoint
+
+Dada a imagem do exemplo, em que pontos você colocaria os marcadores?
+
+![](Vista_superior_e_vista_lateral_real.png)
+
+
+::: Gabarito
+
+![](Vista_superior_e_vista_lateral_marcadores.png)
+
+{red}(**OBS: Se você não colocou os marcadores exatamente na posição mostrada no gabarito não significa que a sua solução esteje errada, o objetivo é posicionar o marcador onde temos certeza que é um objeto.**)
+
+:::
+
+???
+
+Dessa forma, garantimos que não sejam criadas nascentes desnecessárias e também que o comportamento do algorítmo seja como esperavamos a princípio
+
+: Marcadores
+
+Ok, agora sim podemos simular a imagem original das moedas utilizando a técnica dos marcadores.
+
+??? Checkpoint
+
+Em quais pontos da imagem você colocaria os marcadores?
+
+![](Vista_superior_e_vista_lateral_real.png)
+
+
+::: Gabarito
+
+![](Marcadores_moedas.png)
+
+:::
+
+::: Resultado
+
+![](Marcadores_moedas_watershed.png)
+
+:::
+
+???
+
+
+??? Exercício complementar
+
+Abra o arquivo `md watershed_com_marcadores.ipynb` [deste repositorio](https://github.com/ferclima05/handout-Watershed.git) para abrir uma simulação em python do algoritmo funcionando. Nela você pode escolher onde ficarão os marcadores e quais marcadores pertencem a cada objeto.
+
+Apertando as teclas de númeos 1 a 9 você seleciona o marcador.
+
+Depois de selecionar os marcadores, aperte [[w]] para aplicar Watershed.
+
+::: Gabarito
+O resultado deve ser parecido com isso
+
+![](saida_watershed.png)
+
+{red}(*O algoritmo tem dificuldade em identificar os comprimidos brancos por conta do fundo.)
+
+:::
+
+???
