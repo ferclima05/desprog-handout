@@ -267,11 +267,29 @@ Exercícios complementares
 
 ??? Para se aprofundar
 
-Abra o arquivo `md watershed_com_marcadores.ipynb` [deste repositório](https://github.com/ferclima05/handout-Watershed.git) para abrir uma simulação em python do algoritmo funcionando. Nela você pode escolher onde ficarão os marcadores e quais marcadores pertencem a cada objeto.
+Abra o arquivo `md watershed_com_marcadores.py` [deste repositório](https://github.com/ferclima05/handout-Watershed.git) para abrir uma simulação em python do algoritmo funcionando. Nela você pode escolher onde ficarão os marcadores e quais marcadores pertencem a cada objeto.
 
-Apertando as teclas de númeos 1 a 9 você seleciona o marcador.
+Apertando as teclas de númeos [[a]] a [[z]] você seleciona o marcador.
 
-Depois de selecionar os marcadores, aperte [[w]] para aplicar Watershed.
+Após selecionar o marcador desenhe com o mouse onde você quer posiciona-lo.
+
+Depois de selecionar os marcadores, aperte [[2]] para ver o resultado do Watershed.
+
+A tecla [[1]] reseta os marcadores
+
+Aperte [[3]] ou [[esc]] para fechar o programa.
+
+!!!
+
+É necessário instalar a biblioteca OpenCV.
+
+```
+pip install opencv-python
+
+```
+
+
+!!!
 
 ???
 
