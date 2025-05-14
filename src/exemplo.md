@@ -277,33 +277,123 @@ Note como agora conseguimos distinguir diferentes grupos de cor. Porém, os obje
 Watershed
 ---
 
-Agora que já vimos como funcionam os algoritmos mais simples de segmentação, vamos entender a ideia por trás do Watershed (bacias hidrográficas).
+Para poder entender a ideia do algoritmo precisamos visualizar a imagem de uma forma diferente. Para isso, vamos utilizar um exemplo em baixa resolução da foto das moedas.
 
-Vamos utilizar a imagem dos comprimidos como exemplo, e faremos uma simplificação dela para compreender melhor o funcionamento do algoritmo.
+![](exemplo_em_baixa_resolucao.png)
 
-![](comprimidos_matrizes.png)
 
-O algoritmo interpreta a imagem em escala de cinza como um relevo topográfico, no qual cada pixel possui uma altitude conforme seu nível de brilho. Quanto mais branco o pixel, mais alto ele é, e quanto mais escuro, mais baixo ele é.
+??? Checkpoint
 
-![](comprimidos_matrizes_cinza_.png)
+O algoritmo interpreta a imagem em escala de cinza como um relevo topográfico, no qual cada pixel possui uma altitude conforme seu nível de brilho (de 0 a 255). Quanto mais branco o pixel, mais alto ele é, e quanto mais escuro, mais baixo ele é.
 
-No caso dessa imagem, como o fundo é branco, é como se houvesse buracos de diferentes profundidades.
+Com base nessa descrição, pense em como ficaria esse exemplo em baixa resolução no corte representado pela linha vermelha, ou seja, como seria uma "Vista Lateral" da imagem se ela fosse cortada na linha vermelha.
 
-O algoritmo simula a água subindo por esses vales: imagine que há uma nascente no centro de cada vale, então a "água" começa a preenchê-los. Quando as "águas" de duas nascentes diferentes se encontram, é construída uma barreira — essa barreira marca a divisão entre diferentes objetos na imagem. Assim, o algoritmo separa a imagem em regiões bem definidas, como se fossem bacias hidrográficas.
+![](Vista_superior.png)
 
-Mas como definimos onde essas nascentes devem ser posicionadas?
+::: Gabarito
+![](Vista_superior_e_vista_lateral.png)
+
+:::
+
+???
+
+Ok, agora que sabemos como o algoritmo enxerga as imagens vamos entender a ideia por trás do Watershed (bacias hidrográficas).
+
+Imagine que há uma nascente no centro de cada vale, então a "água" começa a preenchê-los. Quando as "águas" de duas nascentes diferentes se encontram, é construída uma barreira — essa barreira marca a divisão entre diferentes objetos na imagem. Assim, o algoritmo separa a imagem em regiões bem definidas, como se fossem bacias hidrográficas.
+
+:Watershed
+
+??? Checkpoint
+
+Muito simples né? Agora pense em como ficaria a imagem das moedas com base no procedimento descrito
+
+![](watershed_SS.png)
+
+::: Gabarito
+![](watershed_SS.png)
+
+:::
+
+???
+
+Não ficou como esperavamos né? Ocorreu o que chamamos de **supersegmentação**.
+
+??? Checkpoint
+
+Olhando para a imagem retornada, por que você acha que isso aconteceu?
+
+::: Gabarito
+
+Vamos voltar ao exemplo em baixa resolução.
+
+Na realidade, a imagem da vista lateral não é sempre como apresentamos anteriormente. Na maioria dos casos ela se parece com isso.
+
+![](Vista_superior_e_vista_lateral_circulos.png)
+
+Possui varios pontos de mínimos locais que o algoritmo interpreta como "nascentes".
+
+: SS
+
+:::
+
+???
+
+
+Como podemos resolver esse problema?
 
 ---
 
 Watershed com Marcadores
 ---
 
-Os marcadores são uma outra matriz de input do algoritmo que serve para indicar por onde a agua deve começar a surgir.
+Os marcadores são uma outra matriz de input do algoritmo que serve para indicar por onde a àgua deve começar a surgir, ou seja, quantas "nascentes" terão e onde serão posicionadas.
 
-![](marcadores.png)
+??? Checkpoint
+
+Dada a imagem do exemplo, em que pontos você colocaria os marcadores?
+
+![](Vista_superior_e_vista_lateral_real.png)
 
 
-??? Exercício
+::: Gabarito
+
+![](Vista_superior_e_vista_lateral_marcadores.png)
+
+{red}(**OBS: Se você não colocou os marcadores exatamente na posição mostrada no gabarito não significa que a sua solução esteje errada, o objetivo é posicionar o marcador onde temos certeza que é um objeto.**)
+
+:::
+
+???
+
+Dessa forma, garantimos que não sejam criadas nascentes desnecessárias e também que o comportamento do algorítmo seja como esperavamos a princípio
+
+: Marcadores
+
+Ok, agora sim podemos simular a imagem original das moedas utilizando a técnica dos marcadores.
+
+??? Checkpoint
+
+Em quais pontos da imagem você colocaria os marcadores?
+
+![](Vista_superior_e_vista_lateral_real.png)
+
+
+::: Gabarito
+
+![](Marcadores_moedas.png)
+
+:::
+
+::: Resultado
+
+![](Marcadores_moedas_watershed.png)
+
+:::
+
+???
+
+
+??? Exercício complementar
 
 Abra o arquivo `md watershed_com_marcadores.ipynb` [deste repositorio](https://github.com/ferclima05/handout-Watershed.git) para abrir uma simulação em python do algoritmo funcionando. Nela você pode escolher onde ficarão os marcadores e quais marcadores pertencem a cada objeto.
 
@@ -321,56 +411,6 @@ O resultado deve ser parecido com isso
 :::
 
 ???
-
-Apesar de ser um algoritmo poderoso, o Watershed também apresenta algumas limitações importantes que precisam ser consideradas:
-
-**Supersegmentação:** quando a imagem possui muito ruído ou pequenas variações de intensidade, o algoritmo pode interpretar cada pequeno vale como uma região separada. Isso gera um número excessivo de divisões, dificultando a segmentação correta.
-
-**Baixo contraste:** se os objetos da imagem tiverem um brilho muito próximo ao do fundo, o relevo gerado terá poucas diferenças de altitude. Isso dificulta que o algoritmo identifique onde estão os vales, resultando em regiões pouco definidas ou incorretas.
-
-Esses problemas podem ser amenizados com técnicas de pré-processamento, como suavização (blur), remoção de ruído ou definição manual de marcadores.
-
----
-
-## Implementação da Fila de Prioridade em Watershed
-
-Ambas as variantes — **Watershed sem marcadores** e **Watershed com marcadores** — usam o mesmo mecanismo de “inundação” guiada por uma fila de prioridade: extraem sempre o pixel de menor gradiente ainda não processado e inserem seus vizinhos. O que muda é apenas **quais** pixels entram como sementes iniciais. A seguir descrevemos as duas implementações mais comuns dessa fila.
-
-## 1. Heap Binário
-
-- Armazena os elementos num **vetor** que representa uma árvore binária completa.  
-- Em um **min-heap**, o menor gradiente está sempre na raiz (`md A[1]`).
-
-- **Inserção (`md push`)**  
-  - Acrescenta o pixel no fim do vetor.  
-  - “Heapify-up”: compara com o pai e troca se o valor do filho for menor que o do pai, subindo até a raiz.  
-
-- **Extração do mínimo (`md pop`)**  
-  - Remove a raiz (menor gradiente).  
-  - Move o último elemento para a raiz.  
-  - “Heapify-down”: compara com os filhos e troca com o menor, descendo até restaurar a heap (árvore).
-
-## 2. Buckets
-
-- Cria um **array** `md buckets[0 … Gₘₐₓ]`, onde `md Gₘₐₓ` é o máximo do gradiente (ex.: 255).  
-- Cada `md buckets[g]` é uma lista (ou fila) de pixels cujo gradiente é exatamente `md g`.  
-- Mantém um ponteiro `md current` apontando para o menor `md g` com bucket não vazio.
-
-- **Inserção (`md push`)**  
-  - Insere o pixel `md (i,j)` no final da lista de `md buckets[g]`, onde `md g` é o valor do gradiente desse pixel.  
-
-- **Extração do mínimo (`md pop`)**  
-  - Enquanto `md buckets[current]` estiver vazio, incrementa `md current` até encontrar um bucket não-vazio (cada bucket vazio é “pulado” apenas uma vez).  
-  - Remove e retorna o primeiro elemento de `md buckets[current]`.  
-
-## Importância da Fila de Prioridade
-
-A fila de prioridade é o **coração** do algoritmo de Watershed (com ou sem marcadores), pois ela garante que a “inundação” avance **sempre** pelos pixels de **menor gradiente** primeiro. Sem esse controle, a expansão das bacias ocorreria em ordem arbitrária, comprometendo a delimitação de fronteiras e a coerência das regiões segmentadas. Além disso:
-
-- **Precisão de segmentação**: ao extrair o próximo pixel a ser rotulado com base no gradiente mais baixo, a fila de prioridade assegura que a água só ultrapasse as cristas (alto gradiente) no momento correto, definindo fronteiras naturais entre objetos.  
-- **Concorrência de sementes**: em versões com múltiplos marcadores, a fila unificada interliga e ordena a propagação de cada região, evitando sobreposição e “buracos” não intencionais.  
-
-Em resumo, sem a fila de prioridade bem implementada, o Watershed não seria capaz de combinar precisão topográfica com desempenho, perdendo sua capacidade de produzir segmentações fiéis às bordas reais da imagem.
 
 ---
 
@@ -489,6 +529,8 @@ imagens estão. Essa pasta também deve estar em *img*.
 : Watershed
 
 : SS
+
+: Marcadores
 
 Você também pode inserir código, inclusive especificando a linguagem.
 
