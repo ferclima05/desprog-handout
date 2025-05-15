@@ -377,44 +377,68 @@ Em resumo, sem a fila de prioridade bem implementada, o Watershed não seria cap
 Complexidade do algoritmo
 ---
 
-Para determinar a complexidade do algoritmo de segmentação por Watershed com marcadores, precisamos pensar em como cada pixel da imagem é “inundado” e rotulado ao longo da execução.
+Para entender a complexidade, é essencial que vocês tenham entendido como esse algoritmo funciona, desde a ideia de visualização do que é feito, por meio da analogia com a altura dos pixels, até o motivo de criação dos marcadores.
 
 ![](image_3D.png)
 
-Como vimos na explicação do algoritmo, o procedimento consiste em extrair o pixel de menor valor de gradiente da fila de prioridade, rotulá-lo com o valor correspondente e inserir os vizinhos ainda não inundados na fila de prioridade.
+Para começar, vamos tentar entender como a busca pelo próximo valor que será inundado ocorre. Tente imaginar como acontece.
 
-No exemplo acima, a fila de prioridade foi baseada na estrutura de **buckets**, pois o mapa de gradiente foi normalizado para valores inteiros entre 0 e 255 (mesma faixa dos níveis de cinza dos pixels), tornando essa abordagem tanto mais simples de implementar quanto mais eficiente em desempenho, pois é mais rápida do que se fosse utilizado **heap binário**.
+??? Checkpoint
 
-Nesse processo, duas operações dominam o custo total: a manipulação da fila de prioridade e a verificação dos vizinhos de cada pixel. Tente pensar qual a complexidade de cada uma das operações.
-
-??? Exercício
-
-Pense qual é a complexidade da manipulação da fila de prioridade e qual a complexidade da verificação dos vizinhos de cada pixel.
+Com base nas animações, tente imaginar como é feita a busca dos próximos valores a serem “inundados”.
 
 ::: Gabarito
-A manipulação da fila de prioridade, baseada na estrutura de buckets, ocorre da seguinte forma: 
-* Acessa o bucket número g (array g) - **O(1)**;
-* Adiciona ou retira o pixel da fila desse bucket - **O(1)**.
-
-Não há necessidade de comparar chaves nem de reorganizar a estrutura, então cada inserção ou remoção é sempre feita em tempo constante.
-
-Ao verificar os vizinhos de um pixel, você sempre faz um número fixo de checagens:
-
-* **4-conectividade**: testa até 4 vizinhos (cima, baixo, esquerda, direita).
-
-* **8-conectividade**: testa até 8 vizinhos (inclui diagonais).
-
-Como esse número de vizinhos não cresce com o tamanho da imagem **𝑁**, cada pixel gera **O(1)** operações de vizinhança. No total, para **𝑁** pixels, isso dá **O(N)**, mas por pixel é sempre **O(1)**.
+O algoritmo inicia-se a partir dos marcadores e, a cada iteração, expande-se para os pixels vizinhos ainda não rotulados. Cada novo pixel adicionado torna-se, por sua vez, ponto de partida para a busca em sua própria vizinhança, até que toda a imagem esteja completamente “inundada”.
 :::
 
 ???
 
-??? Exercício
+Já entendemos como os pixels são identificados; a questão agora é decidir qual vizinho deve ser inundado primeiro. Como você acha que é feito?
 
-Mas e se ao invés de utilizar a estrutura de buckets, fosse utilizada a estrutura de heap binário? Qual seria a complexidade nesse caso?
+??? Checkpoint
+
+Qual a ordem de inundação dos pixels vizinhos?
+
+a) Todos juntos.
+
+b) Ordem aleatória.
+
+c) Os que forem encontrados primeiro vão primeiro.
+
+d) Ordem crescente dos valores dos pixels.
+
 
 ::: Gabarito
-Nesse caso, ao usar um **heap binário** em vez de buckets, cada inserção (push) e extração (pop) custa **O(log N)**, pois envolve operações de heapify (up ou down) que, no pior caso, percorrem toda a altura da árvore binária completa, o que corresponde a aproximadamente **log N** comparações e trocas.
+d) Ordem crescente dos valores dos pixels.
+
+Essa ordem é garantida por uma [fila de prioridade](https://ensino.hashi.pro.br/desprog/aula/17/).
+:::
+
+???
+
+Vamos tentar enxergar a complexidade total do algoritmo através do pseudocódigo a seguir. Considere n como o número de pixels que a imagem possui.
+
+``` c
+Para i em (0, 1, 2, 3, ..., n-1) { // linhas
+  Para j em (0, 1, 2, 3, ..., n-1) { // colunas
+    ...
+    fila de prioridade // Considere a complexidade para a fila como sendo O(f(n))
+    ...
+  }
+}
+```
+
+??? Checkpoint
+
+Baseado no pseudocódigo tente obter a complexidade do algoritmo em função de f(n).
+
+::: Gabarito
+Como cada pixel é processado exatamente uma vez e inserido na fila de prioridade, a varredura dos n pixels custa **$O(n)$**. 
+
+Além disso, existe um trabalho extra que envolve a manipulação da fila de prioridade, mas, para esse handout, não vamos descer a esse nível de detalhe. Vamos considerar então que a manipulação da fila apresenta custo **$O(f(n))$**.
+
+Portanto, a complexidade total do algoritmo fica **$O(n \cdot f(n))$**.
+
 :::
 
 ???
@@ -424,30 +448,21 @@ Comparação com os outros algoritmos
 
 | Algoritmo                      | Complexidade Geral    |
 |--------------------------------|-----------------------|
-| **Thresholding**               | O(N)                  |
-| **Watershed (sem marcadores)** | O(N)                  |
-| **Watershed com marcadores**   | O(N)                  |
-| **k-means**                    | O(N·k·I)              |
+| **Thresholding**               | $O(n)$                |
+| **Watershed (sem marcadores)** | $O(n \cdot f(n))$     |
+| **Watershed com marcadores**   | $O(n \cdot f(n))$     |
 
-- **N** = número de pixels da imagem  
-- **k** = número de clusters
-- **I** = número de iterações até convergência  
+O *Thresholding* não usa nenhuma estrutura sofisticada de dados e apresenta complexidade linear $O(n)$.
 
-**Observação:**  
-- Nesta tabela consideramos a versão de Watershed que usa **buckets**, reduzindo seu custo para **O(N)**.  
-- Se, em vez de buckets, fosse utilizado um **heap binário**, a complexidade de Watershed aumentaria para **O(N log N)**.  
-- Em contextos práticos, k-means também é tratado como **O(N)** quando o número de clusters (k) e de iterações (I) são fixos e pequenos.
+Para o algoritmo de *Watershed* (com ou sem marcadores), como já falamos antes, a complexidade envolve a busca dos pixels e a manipulação da fila de prioridade.
 
+Para a fila, adotamos como sendo uma caixa preta cujo comportamento de $f(n)$ não foi definido. Porém, para comparar as complexidades dos algoritmos mencionados, considere que $f(n)$ pode ser **log n** ou **1**, dependendo de qual estrutura de fila de prioridade for utilizada.
 
-Em termos de **complexidade**, todas as técnicas apresentadas — **Thresholding**, **Watershed** (com ou sem marcadores, usando buckets) e **k-means** (com *k* e *I* constantes) — podem ser implementadas em tempo **O(N)**. Essa semelhança significa que, do ponto de vista de escalabilidade, nenhuma delas se torna intratável apenas pelo crescimento do número de pixels.
+O *Thresholding* é extremamente rápido e direto, mas não funciona muito bem para distinguir regiões limítrofes que apresentem valores de intensidade semelhantes.
 
-No entanto, cada método traz **vantagens e limitações** específicas:
+O *Watershed*, apesar de possuir uma complexidade igual ou pior que $O(n)$, funciona melhor que o Thresholding para a segmentação de imagens com objetos grudados, apesar de essa não ser a finalidade principal do algoritmo.
 
-- **Thresholding** é extremamente rápido e direto (uma única passagem em O(N)), mas não distingue regiões limítrofes que apresentem valores de intensidade semelhantes.
-- **k-means**, embora também linear quando *k* e *I* são fixos, dependendo da escolha de *k*, pode gerar clusters espacialmente desconectados e normalmente requer pós-processamento para refinar fronteiras.  
-- **Watershed com buckets** combina segmentação guiada pelas bordas (cristas de gradiente) com complexidade linear, produzindo **fronteiras alinhadas** a contornos reais e garantindo regiões coerentes com os objetos da imagem — ideal para cenários em que a precisão de delimitação é tão importante quanto a eficiência.
-
-Portanto, mesmo partindo de **O(N)** para todos, vale escolher o algoritmo certo para cada necessidade: se a prioridade for **velocidade pura** e o objetivo for uma divisão muito simples, o **thresholding** basta; se for **qualidade de segmentação espacial**, especialmente em imagens com ruído ou variações suaves, **Watershed com buckets** se destaca como a melhor opção.
+Portanto, vale escolher o algoritmo certo para cada necessidade: se a prioridade for **velocidade pura** e o objetivo for uma divisão muito simples, o **thresholding** basta; se for **qualidade de segmentação espacial**, especialmente em imagens com ruído ou variações suaves, **Watershed com marcadores** se destaca como a melhor opção.
 
 ---
 Fim do handout - Abaixo são exemplos de componentes que podemos usar para fazer o Handout 
