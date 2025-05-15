@@ -262,6 +262,98 @@ Agora sim alcançamos o resultado que esperávamos. Mas será que esse algoritmo
 
 ---
 
+Complexidade do algoritmo
+---
+
+Para entender a complexidade, é essencial que vocês tenham entendido como esse algoritmo funciona, desde a ideia de visualização do que é feito, por meio da analogia com a altura dos pixels, até o motivo de criação dos marcadores.
+
+![](image_3D.png)
+
+Para começar, vamos tentar entender como a busca pelo próximo valor que será inundado ocorre. Tente imaginar como acontece.
+
+??? Checkpoint
+
+Com base nas animações, tente imaginar como é feita a busca dos próximos valores a serem “inundados”.
+
+::: Gabarito
+O algoritmo inicia-se a partir dos marcadores e, a cada iteração, expande-se para os pixels vizinhos ainda não rotulados. Cada novo pixel adicionado torna-se, por sua vez, ponto de partida para a busca em sua própria vizinhança, até que toda a imagem esteja completamente “inundada”.
+:::
+
+???
+
+Já entendemos como os pixels são identificados; a questão agora é decidir qual vizinho deve ser inundado primeiro. Como você acha que é feito?
+
+??? Checkpoint
+
+Qual a ordem de inundação dos pixels vizinhos?
+
+a) Todos juntos.
+
+b) Ordem aleatória.
+
+c) Os que forem encontrados primeiro vão primeiro.
+
+d) Ordem crescente dos valores dos pixels.
+
+
+::: Gabarito
+d) Ordem crescente dos valores dos pixels.
+
+Essa ordem é garantida por uma [fila de prioridade](https://ensino.hashi.pro.br/desprog/aula/17/).
+:::
+
+???
+
+Vamos tentar enxergar a complexidade total do algoritmo através do pseudocódigo a seguir. Considere n como o número de pixels que a imagem possui.
+
+```c
+Para i em (0, 1, 2, 3, ..., n-1) { // linhas
+  Para j em (0, 1, 2, 3, ..., n-1) { // colunas
+    ...
+    fila de prioridade // Considere a complexidade para a fila como sendo O(f(n))
+    ...
+  }
+}
+```
+
+??? Checkpoint
+
+Baseado no pseudocódigo tente obter a complexidade do algoritmo em função de f(n).
+
+::: Gabarito
+Como cada pixel é processado exatamente uma vez e inserido na fila de prioridade, a varredura dos n pixels custa *$O(n)$*. 
+
+Além disso, existe um trabalho extra que envolve a manipulação da fila de prioridade, mas, para esse handout, não vamos descer a esse nível de detalhe. Vamos considerar então que a manipulação da fila apresenta custo *$O(f(n))$*.
+
+Portanto, a complexidade total do algoritmo fica *$O(n \cdot f(n))$*.
+
+:::
+
+???
+
+Comparação com os outros algoritmos
+---
+
+| Algoritmo                      | Complexidade Geral    |
+|--------------------------------|-----------------------|
+| *Thresholding*                 | $O(n)$                |
+| *Watershed (sem marcadores)*   | $O(n \cdot f(n))$     |
+| *Watershed com marcadores*     | $O(n \cdot f(n))$     |
+
+O Thresholding não usa nenhuma estrutura sofisticada de dados e apresenta complexidade linear $O(n)$.
+
+Para o algoritmo de Watershed (com ou sem marcadores), como já falamos antes, a complexidade envolve a busca dos pixels e a manipulação da fila de prioridade.
+
+Para a fila, adotamos como sendo uma caixa preta cujo comportamento de $f(n)$ não foi definido. Porém, para comparar as complexidades dos algoritmos mencionados, considere que $f(n)$ pode ser *log n* ou *1*, dependendo de qual estrutura de fila de prioridade for utilizada.
+
+O Thresholding é extremamente rápido e direto, mas não funciona muito bem para distinguir regiões limítrofes que apresentem valores de intensidade semelhantes.
+
+O Watershed, apesar de possuir uma complexidade igual ou pior que $O(n)$, funciona melhor que o Thresholding para a segmentação de imagens com objetos grudados, apesar de essa não ser a finalidade principal do algoritmo.
+
+Portanto, vale escolher o algoritmo certo para cada necessidade: se a prioridade for *velocidade pura* e o objetivo for uma divisão muito simples, o *thresholding* basta; se for *qualidade de segmentação espacial, especialmente em imagens com ruído ou variações suaves, **Watershed com marcadores* se destaca como a melhor opção.
+
+---
+
 Exercícios complementares
 ---
 
