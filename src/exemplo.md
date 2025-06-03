@@ -74,7 +74,7 @@ Thresholding
 
 Agora que entendemos o desafio de separar objetos em uma imagem, vamos começar com um dos métodos mais simples e intuitivos de segmentação: o **thresholding**.
 
-A ideia é a seguinte: Cada pixel da imagem possui um valor que representa sua intensidade (por exemplo, de 0 a 255). O thresholding define um **limiar** e separa os pixels em dois grupos: os mais claros (acima do limiar) e os mais escuros (abaixo do limiar).
+A ideia é a seguinte: Existe uma imagem inicila colorida, ela é convertida em escala cinza, cada pixel da imagem na escala cinza possui um valor que representa sua intensidade (por exemplo, de 0 a 255). O thresholding define um **limiar** e separa os pixels em dois grupos: os mais claros (acima do limiar) e os mais escuros (abaixo do limiar).
 
 ???
 
@@ -94,6 +94,10 @@ Dado esse funcionamento, qual tipo de imagem tende a funcionar melhor com thresh
 Vamos aplicar isso a uma imagem com várias moedas:
 
 ![](moedas1.png)
+
+O primeiro passo é converte ela para uma escala cinza:
+
+![](imagem_cinza.jpg)
 
 A ideia é separar as moedas (em tons escuros e médios) do fundo (branco), usando um limiar de intensidade.
 
@@ -146,10 +150,10 @@ Para poder entender a ideia do algoritmo precisamos visualizar a imagem de uma f
 
 ![](exemplo_em_baixa_resolucao.png)
 
+O algoritmo também interpreta a imagem em **escala de cinza** como um relevo topográfico, no qual cada pixel possui uma altitude conforme seu nível de brilho (de 0 a 255). Quanto mais branco o pixel, mais alto ele é, e quanto mais escuro, mais baixo ele é.
 
 ??? Checkpoint
 
-O algoritmo interpreta a imagem em escala de cinza como um relevo topográfico, no qual cada pixel possui uma altitude conforme seu nível de brilho (de 0 a 255). Quanto mais branco o pixel, mais alto ele é, e quanto mais escuro, mais baixo ele é.
 
 Com base nessa descrição, pense em como ficaria esse exemplo em baixa resolução no corte representado pela linha vermelha, ou seja, como seria uma "Vista Lateral" da imagem se ela fosse cortada na linha vermelha.
 
@@ -158,6 +162,9 @@ Com base nessa descrição, pense em como ficaria esse exemplo em baixa resoluç
 ::: Gabarito
 ![](Vista_superior_e_vista_lateral.png)
 
+Essa seria uma possível analogia de como ficaria uma vista em forma 3D
+
+![](imagem_3D_oposto.png)
 :::
 
 ???
@@ -172,7 +179,7 @@ Imagine que há uma nascente no centro de cada vale, então a "água" começa a 
 
 Muito simples né? Agora pense em como ficaria a imagem das moedas com base no procedimento descrito
 
-![](moedas1.png)
+![](imagem_cinza.jpg)
 
 ::: Gabarito
 ![](watershed_SS.png)
@@ -241,12 +248,12 @@ Ok, agora sim podemos simular a imagem original das moedas utilizando a técnica
 
 Em quais pontos da imagem você colocaria os marcadores?
 
-![](moedas1.png)
+![](imagem_cinza.jpg)
 
 
 ::: Gabarito
 
-![](Marcadores_moedas.png)
+![](imagem_cinza_marcadores.jpg)
 
 :::
 
