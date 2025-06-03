@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Algoritmo de Watershed – Visualizador Interativo</title>
+
+<style>
+/* ===== VISUAL STYLES (inalterados) ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+     background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+     min-height:100vh;color:#333}
+.container{max-width:1400px;margin:0 auto;padding:20px}
+.header{text-align:center;margin-bottom:30px;color:#fff}
+.header h1{font-size:2.5em;margin-bottom:10px;
+           text-shadow:2px 2px 4px rgba(0,0,0,.3)}
+.controls{background:rgba(255,255,255,.95);padding:25px;border-radius:15px;
+          box-shadow:0 8px 32px rgba(0,0,0,.1);backdrop-filter:blur(10px);
+          margin-bottom:30px;display:flex;flex-wrap:wrap;gap:20px;
+          align-items:center;justify-content:center}
+.file-input-wrapper{position:relative;overflow:hidden;display:inline-block}
+.file-input-wrapper input[type=file]{position:absolute;left:-9999px}
+.file-input-label{background:linear-gradient(45deg,#667eea,#764ba2);color:#fff;
+                  padding:12px 24px;border-radius:25px;cursor:pointer;
+                  transition:.3s;font-weight:600;
+                  box-shadow:0 4px 15px rgba(0,0,0,.2)}
+.file-input-label:hover{transform:translateY(-2px);
+                        box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.btn{background:linear-gradient(45deg,#ff6b6b,#ee5a24);color:#fff;border:none;
+     padding:12px 24px;border-radius:25px;cursor:pointer;font-weight:600;
+     transition:.3s;box-shadow:0 4px 15px rgba(0,0,0,.2)}
+.btn:hover{transform:translateY(-2px);
+           box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.btn:disabled{background:#ccc;cursor:not-allowed;transform:none}
+.btn-secondary{background:linear-gradient(45deg,#3742fa,#2f3542)}
+.step-controls{display:flex;align-items:center;gap:15px}
+.step-info{background:rgba(255,255,255,.8);padding:8px 16px;border-radius:20px;
+           font-weight:600;color:#333}
+.level-info{background:rgba(102,126,234,.1);padding:8px 16px;border-radius:20px;
+            font-weight:600;color:#667eea;border:2px solid rgba(102,126,234,.3)}
+.canvas-container{display:flex;gap:30px;justify-content:center;flex-wrap:wrap}
+.canvas-wrapper{background:#fff;padding:20px;border-radius:15px;
+                box-shadow:0 8px 32px rgba(0,0,0,.1);backdrop-filter:blur(10px);
+                flex:1;max-width:600px}
+.canvas-title{text-align:center;margin-bottom:15px;font-weight:600;
+              color:#333;font-size:1.2em}
+canvas{border:2px solid #ddd;border-radius:10px;cursor:crosshair;transition:.3s;
+       width:100%;height:auto;max-width:550px;display:block}
+canvas:hover{border-color:#667eea;
+             box-shadow:0 4px 15px rgba(102,126,234,.3)}
+.instructions{background:rgba(255,255,255,.9);padding:20px;border-radius:15px;
+              margin-top:30px;box-shadow:0 8px 32px rgba(0,0,0,.1)}
+.instructions h3{color:#333;margin-bottom:15px;font-size:1.3em}
+.instructions ul{list-style:none;padding-left:0}
+.instructions li{margin-bottom:10px;padding:8px 15px;
+                 background:rgba(102,126,234,.1);border-radius:8px;
+                 border-left:4px solid #667eea}
+.status{text-align:center;margin:20px 0;padding:15px;
+        background:rgba(255,255,255,.9);border-radius:10px;
+        font-weight:600;color:#333}
+#markerSelect{padding:10px;border-radius:8px;font-weight:600}
+@media(max-width:768px){
+  .controls{flex-direction:column;text-align:center}
+  .canvas-container{flex-direction:column;align-items:center}
+  .header h1{font-size:2em}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <div class="header">
+      <h1>🌊 Algoritmo de Watershed</h1>
+      <p>Slider fixo: 0 → 255 em passos de 5</p>
+  </div>
+
+  <!-- ===== CONTROLES ===== -->
+  <div class="controls">
+      <div class="file-input-wrapper">
+          <input type="file" id="imageInput" accept="image/*"/>
+          <label for="imageInput" class="file-input-label">📁 Carregar Imagem</label>
+      </div>
+
+      <div>
+          <label for="markerSelect" style="font-weight:600;color:#333">Marcador:</label>
+          <select id="markerSelect"></select>
+      </div>
+
+      <button id="clearMarkers" class="btn">🗑️ Limpar Marcadores</button>
+      <button id="runWatershed" class="btn btn-secondary" disabled>
+          🚀 Executar Watershed
+      </button>
+
+      <div class="step-controls">
+          <button id="prevStep" class="btn" disabled>⬅️ Anterior</button>
+          <div class="step-info" id="stepInfo">Passo: 0/51</div>
+          <button id="nextStep" class="btn" disabled>➡️ Próximo</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:15px;margin-top:15px">
+          <label for="stepSlider" style="font-weight:600;color:#333">
+              Navegação Rápida:</label>
+          <input type="range" id="stepSlider" min="0" max="51" value="0" step="1"
+                 style="flex:1;max-width:300px" disabled/>
+          <div class="level-info" id="levelInfo">Nível: 0</div>
+      </div>
+  </div>
+
+  <div id="status" class="status" style="display:none"></div>
+
+  <!-- ===== CANVAS ===== -->
+  <div class="canvas-container">
+      <div class="canvas-wrapper">
+          <div class="canvas-title">Imagem Original + Marcadores</div>
+          <canvas id="originalCanvas" width="500" height="400"></canvas>
+      </div>
+      <div class="canvas-wrapper">
+          <div class="canvas-title">Inundação Passo-a-Passo</div>
+          <canvas id="resultCanvas" width="500" height="400"></canvas>
+      </div>
+  </div>
+
+  <!-- ===== INSTRUÇÕES ===== -->
+  <div class="instructions">
+      <h3>📋 Como Usar</h3>
+      <ul>
+          <li><b>1.</b> Carregue uma imagem.</li>
+          <li><b>2.</b> Escolha um marcador (0–30) e pinte as regiões.</li>
+          <li><b>3.</b> Use pelo menos 2 marcadores para segmentação.</li>
+          <li><b>4.</b> Clique em <b>Executar Watershed</b>.</li>
+          <li><b>5.</b> Navegue com o slider (<i>0, 5, 10… 255</i>).</li>
+          <li><b>6.</b> Linhas violetas = cristas (watershed).</li>
+      </ul>
+  </div>
+</div>
+
+<script>
+/* =============== UTIL =============== */
+function hslToRgb(h,s,l){
+  h/=360; s/=100; l/=100;
+  let r,g,b;
+  if(s===0){r=g=b=l;}
+  else{
+    const hue2rgb=(p,q,t)=>{
+      if(t<0)t+=1;if(t>1)t-=1;
+      if(t<1/6)return p+(q-p)*6*t;
+      if(t<1/2)return q;
+      if(t<2/3)return p+(q-p)*(2/3-t)*6;
+      return p;
+    };
+    const q=l<0.5?l*(1+s):l+s-l*s;
+    const p=2*l-q;
+    r=hue2rgb(p,q,h+1/3);
+    g=hue2rgb(p,q,h);
+    b=hue2rgb(p,q,h-1/3);
+  }
+  return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+}
+
+/* ============ VISUALIZADOR ============ */
+class WatershedVisualizer{
+  constructor(){
+    /* canvas */
+    this.originalCanvas=document.getElementById('originalCanvas');
+    this.resultCanvas  =document.getElementById('resultCanvas');
+    this.oCtx=this.originalCanvas.getContext('2d');
+    this.rCtx=this.resultCanvas.getContext('2d');
+
+    /* dados */
+    this.image=null; this.imageData=null; this.gray=null; this.grad=null;
+    this.mask=null;
+
+    /* estados */
+    this.WSHED=-1; this.INIT=-3;
+    this.STEP_SIZE=5;
+    this.maxIndex=51;              // sempre 0-51
+    this.steps=[];
+    this.stepIndex=0;              // posição do slider
+    this.currentStep=0;            // nível real (=stepIndex*5)
+    this.processed=false;
+
+    /* cores marcadores 0-30 */
+    this.colors=[...Array(31)].map((_,i)=>hslToRgb(i*360/31,90,60));
+
+    this.painting=false; this.currentMarker=1; this.brushRadius=8;
+
+    this.setupUI();
+  }
+
+  /* ---------- UI (inalterada) ---------- */
+  setupUI(){
+    const sel=document.getElementById('markerSelect');
+    for(let i=0;i<=30;i++){
+      const o=document.createElement('option');
+      o.value=i; o.textContent=i; sel.appendChild(o);
+    }
+    sel.value=1;
+    document.getElementById('imageInput')
+            .addEventListener('change',e=>this.loadImage(e));
+    document.getElementById('clearMarkers')
+            .addEventListener('click',()=>this.clear());
+    document.getElementById('runWatershed')
+            .addEventListener('click',()=>this.run());
+    document.getElementById('prevStep')
+            .addEventListener('click',()=>this.prev());
+    document.getElementById('nextStep')
+            .addEventListener('click',()=>this.next());
+    document.getElementById('stepSlider')
+            .addEventListener('input',
+               e=>this.go(parseInt(e.target.value,10)));
+    sel.addEventListener('change',
+        e=>this.currentMarker=parseInt(e.target.value,10));
+    this.originalCanvas.addEventListener('pointerdown',e=>this.startPaint(e));
+    this.originalCanvas.addEventListener('pointermove',e=>this.paint(e));
+    this.originalCanvas.addEventListener('pointerup',()=>this.stopPaint());
+    this.originalCanvas.addEventListener('pointerleave',()=>this.stopPaint());
+    this.originalCanvas.addEventListener('pointercancel',()=>this.stopPaint());
+  }
+
+  /* ---------- CARREGAR IMAGEM ---------- */
+  loadImage(evt){
+    const file=evt.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      this.image=new Image();
+      this.image.onload=()=>{
+        this.fitCanvas();
+        this.oCtx.drawImage(this.image,0,0,
+                            this.originalCanvas.width,
+                            this.originalCanvas.height);
+        this.imageData=this.oCtx.getImageData(
+                         0,0,
+                         this.originalCanvas.width,
+                         this.originalCanvas.height);
+        this.toGray(); this.sobel(); this.initMask();
+        this.status('Imagem carregada. Pinte as regiões.');
+      };
+      this.image.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  fitCanvas(){
+    const maxW=500,maxH=400;
+    let {width:w,height:h}=this.image;
+    if(w>maxW||h>maxH){
+      const r=Math.min(maxW/w,maxH/h);
+      w=Math.floor(w*r); h=Math.floor(h*r);
+    }
+    this.originalCanvas.width=this.resultCanvas.width=w;
+    this.originalCanvas.height=this.resultCanvas.height=h;
+    this.originalCanvas.style.width=this.resultCanvas.style.width=w+'px';
+    this.originalCanvas.style.height=this.resultCanvas.style.height=h+'px';
+    this.brushRadius=Math.max(2,Math.min(20,Math.floor(Math.min(w,h)*0.01)));
+  }
+
+  /* ---------- PRÉ-PROCESSAMENTO ---------- */
+  toGray(){
+    const d=this.imageData.data,w=this.originalCanvas.width,h=this.originalCanvas.height;
+    this.gray=Array.from({length:h},()=>Array(w));
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+      const i=(y*w+x)*4;
+      const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+      this.gray[y][x]=g|0;
+    }
+  }
+
+  sobel(){
+    const w=this.originalCanvas.width,h=this.originalCanvas.height;
+    this.grad=Array.from({length:h},()=>Array(w).fill(0));
+    const sx=[[-1,0,1],[-2,0,2],[-1,0,1]],
+          sy=[[-1,-2,-1],[0,0,0],[1,2,1]];
+    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+      let gx=0,gy=0;
+      for(let ky=-1;ky<=1;ky++)for(let kx=-1;kx<=1;kx++){
+        const p=this.gray[y+ky][x+kx];
+        gx+=p*sx[ky+1][kx+1]; gy+=p*sy[ky+1][kx+1];
+      }
+      this.grad[y][x]=Math.min(255,Math.round(Math.hypot(gx,gy)));
+    }
+  }
+
+  /* ---------- MARCADORES ---------- */
+  initMask(){
+    const w=this.originalCanvas.width,h=this.originalCanvas.height;
+    this.mask=Array.from({length:h},()=>Array(w).fill(0));
+    this.drawn=new Set();
+    document.getElementById('runWatershed').disabled=true;
+    this.resultCanvas.width=this.resultCanvas.width; // clear
+  }
+
+  startPaint(e){
+    if(!this.image) return;
+    e.preventDefault();
+    this.painting=true; this.paint(e);
+  }
+  stopPaint(){this.painting=false;}
+
+  paint(e){
+    if(!this.painting) return;
+    e.preventDefault();
+    const rect=this.originalCanvas.getBoundingClientRect();
+    const x=Math.floor((e.clientX-rect.left)*
+                       this.originalCanvas.width/rect.width),
+          y=Math.floor((e.clientY-rect.top) *
+                       this.originalCanvas.height/rect.height);
+    this.brush(x,y); this.drawBrush(x,y);
+    this.drawn.add(this.currentMarker);
+    document.getElementById('runWatershed').disabled=this.drawn.size<2;
+  }
+
+  brush(cx,cy){
+    const r=this.brushRadius,w=this.originalCanvas.width,h=this.originalCanvas.height,id=this.currentMarker;
+    for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+      const nx=cx+dx,ny=cy+dy;
+      if(nx>=0&&nx<w&&ny>=0&&ny<h && dx*dx+dy*dy<=r*r)
+        this.mask[ny][nx]=id;
+    }
+  }
+
+  drawBrush(cx,cy){
+    const c=this.colors[this.currentMarker];
+    this.oCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},0.7)`;
+    this.oCtx.beginPath();
+    this.oCtx.arc(cx,cy,this.brushRadius,0,Math.PI*2);
+    this.oCtx.fill();
+    this.oCtx.fillStyle='#fff';
+    this.oCtx.font='bold 12px Arial'; this.oCtx.textAlign='center';
+    this.oCtx.fillText(this.currentMarker,cx,cy+4);
+  }
+
+  /* ---------- EXECUÇÃO ---------- */
+  async run(){
+    if(this.drawn.size<2){
+      this.status('Use pelo menos 2 marcadores diferentes!');
+      return;
+    }
+    this.status('Processando...');
+    document.getElementById('runWatershed').disabled=true;
+    await new Promise(r=>setTimeout(r,20));
+
+    this.steps=this.computeSteps();   // 256 snapshots
+    this.stepIndex=this.maxIndex;     // começa no 255
+    this.currentStep=this.stepIndex*this.STEP_SIZE;
+    this.processed=true;
+
+    const slider=document.getElementById('stepSlider');
+    slider.disabled=false; slider.max=this.maxIndex;
+    slider.value=this.stepIndex;
+    document.getElementById('prevStep').disabled=false;
+    document.getElementById('nextStep').disabled=false;
+
+    this.showStep(); this.updateInfo(); this.status('Concluído!');
+  }
+
+  computeSteps(){
+    const w=this.originalCanvas.width,h=this.originalCanvas.height;
+    const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
+    let labels=this.mask.map(r=>r.slice());
+    const steps=[];
+    for(let lvl=0;lvl<256;lvl++){
+      const q=[];
+      /* marca pixels com gradiente = lvl */
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+        if(labels[y][x]===0 && this.grad[y][x]===lvl){
+          let adj=false;
+          for(const[dX,dY] of dirs){
+            const nx=x+dX,ny=y+dY;
+            if(nx>=0&&nx<w&&ny>=0&&ny<h && labels[ny][nx]>0){adj=true;break;}
+          }
+          if(adj){labels[y][x]=this.INIT; q.push([x,y]);}
+        }
+      }
+      /* propaga */
+      while(q.length){
+        const[x,y]=q.shift(); const neigh=new Set();
+        for(const[dX,dY] of dirs){
+          const nx=x+dX,ny=y+dY;
+          if(nx<0||nx>=w||ny<0||ny>=h) continue;
+          const nl=labels[ny][nx];
+          if(nl>0) neigh.add(nl);
+          else if(nl===0 && this.grad[ny][nx]<=lvl){
+            labels[ny][nx]=this.INIT; q.push([nx,ny]);
+          }
+        }
+        if(neigh.size===1) labels[y][x]=[...neigh][0];
+        else if(neigh.size>1) labels[y][x]=this.WSHED;
+      }
+      steps[lvl]={labels:labels.map(r=>r.slice()),level:lvl};
+    }
+    /* preencher vazios */
+    const q=[];
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)
+      if(labels[y][x]>0) q.push([x,y]);
+    while(q.length){
+      const[x,y]=q.shift(), lbl=labels[y][x];
+      for(const[dX,dY] of dirs){
+        const nx=x+dX,ny=y+dY;
+        if(nx<0||nx>=w||ny<0||ny>=h) continue;
+        if(labels[ny][nx]===0||labels[ny][nx]===this.INIT){
+          labels[ny][nx]=lbl; q.push([nx,ny]);
+        }
+      }
+    }
+    /* === LIMPA FUNDO CONECTADO À BORDA === */
+    const qBg = [];
+    for (let x = 0; x < w; x++) {              // borda superior e inferior
+        if (this.mask[0][x] === 0)       { labels[0][x] = 0;       qBg.push([x,0]); }
+        if (this.mask[h-1][x] === 0)     { labels[h-1][x] = 0;     qBg.push([x,h-1]); }
+    }
+    for (let y = 0; y < h; y++) {               // borda esquerda e direita
+        if (this.mask[y][0] === 0)       { labels[y][0] = 0;       qBg.push([0,y]); }
+        if (this.mask[y][w-1] === 0)     { labels[y][w-1] = 0;     qBg.push([w-1,y]); }
+    }
+    while (qBg.length) {
+        const [x,y] = qBg.shift();
+        for (const [dx,dy] of dirs) {
+            const nx = x + dx,
+                ny = y + dy;
+            if (nx<0 || nx>=w || ny<0 || ny>=h) continue;
+            if (this.mask[ny][nx] === 0 &&             // nunca foi marcado
+                labels[ny][nx]     !== 0 &&            // não é fundo ainda
+                labels[ny][nx]     !== this.WSHED) {   // nem crista
+                labels[ny][nx] = 0;                    // vira fundo puro
+                qBg.push([nx,ny]);
+            }
+        }
+    }
+    /* === fim da limpeza do fundo === */
+
+    /* === REMOVE RÓTULOS QUE TOCAM A BORDA MAS NÃO TÊM MARCADOR === */
+    const borderLabels = new Set();
+
+    // bordas superior e inferior
+    for (let x = 0; x < w; x++) {
+    if (this.mask[0][x]     === 0) borderLabels.add(labels[0][x]);
+    if (this.mask[h-1][x]   === 0) borderLabels.add(labels[h-1][x]);
+    }
+    // bordas esquerda e direita
+    for (let y = 0; y < h; y++) {
+    if (this.mask[y][0]     === 0) borderLabels.add(labels[y][0]);
+    if (this.mask[y][w-1]   === 0) borderLabels.add(labels[y][w-1]);
+    }
+
+    // não precisamos eliminar 0 (fundo) nem WSHED
+    borderLabels.delete(0);
+    borderLabels.delete(this.WSHED);
+
+    if (borderLabels.size) {
+    for (let y = 0; y < h; y++)
+        for (let x = 0; x < w; x++)
+        if (borderLabels.has(labels[y][x])) labels[y][x] = 0;
+    }
+    /* === fim da remoção de rótulos de borda === */
+
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)
+      if(labels[y][x]<0) labels[y][x]=this.WSHED;
+    
+    steps[255] = {
+        labels: steps[250].labels.map(r => r.slice()),   // cópia profunda
+        level : 255
+    };
+    return steps;
+  }
+
+  /* ---------- VISUALIZAÇÃO (ALTERADA) ---------- */
+  showStep(){
+    if(!this.processed) return;
+    const step=this.steps[this.currentStep];
+    if(!step) return;
+
+    const w=this.originalCanvas.width,
+          h=this.originalCanvas.height,
+          base=this.imageData.data;
+    const img=this.rCtx.createImageData(w,h),
+          d=img.data;
+
+    /* Função utilitária p/ misturar cor original + cor do marcador */
+    const mix=(o,c,alpha)=>((1-alpha)*o + alpha*c)|0;
+    const floodAlpha=1;
+
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const idx=(y*w+x)*4,
+              label=step.labels[y][x];
+
+        if(label===this.WSHED){
+          /* crista violeta */
+          d[idx]=102; d[idx+1]=102; d[idx+2]=234; d[idx+3]=255;
+        }else if(label<=0){
+          /* ainda não inundado: copia pixel original */
+          d[idx]  = base[idx];
+          d[idx+1]= base[idx+1];
+          d[idx+2]= base[idx+2];
+          d[idx+3]= 255;
+        }else{
+          /* região já inundada – aplica “tinte” de cor */
+     
+          const c = this.colors[label];
+          d[idx]     = c[0];
+          d[idx + 1] = c[1];
+          d[idx + 2] = c[2];
+          d[idx + 3] = 255;
+        }
+      }
+    }
+    this.rCtx.putImageData(img,0,0);
+  }
+
+  /* ---------- NAVEGAÇÃO ---------- */
+  prev(){
+    if(this.stepIndex===0) return;
+    this.stepIndex--;
+    this.currentStep=this.stepIndex*this.STEP_SIZE;
+    this.showStep(); this.updateInfo();
+    document.getElementById('stepSlider').value=this.stepIndex;
+  }
+
+  next(){
+    if(this.stepIndex>=this.maxIndex) return;
+    this.stepIndex++;
+    this.currentStep=this.stepIndex*this.STEP_SIZE;
+    this.showStep(); this.updateInfo();
+    document.getElementById('stepSlider').value=this.stepIndex;
+  }
+
+  go(idx){
+    idx=Math.max(0,Math.min(idx,this.maxIndex));
+    this.stepIndex=idx;
+    this.currentStep=this.stepIndex*this.STEP_SIZE;
+    this.showStep(); this.updateInfo();
+  }
+
+  updateInfo(){
+    document.getElementById('stepInfo').textContent=
+      `Passo: ${this.stepIndex}/${this.maxIndex}`;
+    document.getElementById('levelInfo').textContent=
+      `Nível: ${this.currentStep}`;
+    document.getElementById('prevStep').disabled=this.stepIndex===0;
+    document.getElementById('nextStep').disabled=this.stepIndex>=this.maxIndex;
+  }
+
+  /* ---------- UTIL ---------- */
+  clear(){
+    if(!this.image) return;
+    this.oCtx.drawImage(this.image,0,0,
+                        this.originalCanvas.width,
+                        this.originalCanvas.height);
+    this.initMask();
+    this.stepIndex=0; this.currentStep=0;
+    document.getElementById('stepInfo').textContent='Passo: 0/51';
+    document.getElementById('levelInfo').textContent='Nível: 0';
+    document.getElementById('prevStep').disabled=true;
+    document.getElementById('nextStep').disabled=true;
+    const slider=document.getElementById('stepSlider');
+    slider.disabled=true; slider.value=0;
+    this.rCtx.clearRect(0,0,
+                        this.resultCanvas.width,
+                        this.resultCanvas.height);
+    this.processed=false;
+    this.status('Marcadores limpos.');
+  }
+
+  status(msg){
+    const st=document.getElementById('status');
+    st.textContent=msg; st.style.display='block';
+    setTimeout(()=>st.style.display='none',4000);
+  }
+}
+
+/* iniciar */
+const viz=new WatershedVisualizer();
+</script>
+</body>
+</html>
