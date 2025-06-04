@@ -366,6 +366,12 @@ Exercícios complementares
 
 ??? Para se aprofundar
 
+Entre no arquivo HTML com a implementação web do algoritmo para poder testar sua aplicação
+
+???
+
+??? Para se aprofundar
+
 Abra o arquivo `md watershed_com_marcadores.py` [deste repositório](https://github.com/ferclima05/handout-Watershed.git) para abrir uma simulação em python do algoritmo funcionando. Nela você pode escolher onde ficarão os marcadores e quais marcadores pertencem a cada objeto.
 
 Apertando as teclas de númeos [[a]] a [[z]] você seleciona o marcador.
